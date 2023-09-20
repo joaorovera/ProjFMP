@@ -1,37 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title>To do list</title>
-</head>
+const localStorageKey = 'to-do-list-gn'
 
+function validateIfExistsNewTask() {
+    let values = JSON.parse(localStorage.getItem(localStorageKey) || "[]")
+    let inputValue = document.getElementById('input-new-task').value
+    let exists = values.find(x => x.name == inputValue)
+    return !exists ? false : true
+}
 
-<body>
-    <div id="box" >
-    <h1>To do list</h1>
-    <div class="content"> 
-        <div class="content--add--item">
-            <input type="text" id="input-new-task" placeholder="Digite sua nova task">
-            <button onclick="newTask()" id="btn-new-task" title="Clique aqui para adicionar uma nova task"> +
-                
+function newTask() {
+    let input = document.getElementById('input-new-task')
+    input.style.border = ''
+
+    if (!input.value) {
+        input.style.border = '1px solid red'
+        alert('Digite uma tarefa para adicionar em sua lista')
+    }
+
+    else if (validateIfExistsNewTask()) {
+        alert('Já existe uma tarefa com esse nome')
+    }
+    else {
+        let values = JSON.parse(localStorage.getItem(localStorageKey) || "[]")
+        values.push({
+            name: input.value,
+            deleted : false
+        })
+        localStorage.setItem(localStorageKey, JSON.stringify(values))
+        showValues()
+    }
+    input.value = ''
+
+}
+
+function showValues() {
+    let values = JSON.parse(localStorage.getItem(localStorageKey) || "[]")
+    let list = document.getElementById('to-do-list')
+    list.innerHTML = ''
+    for (let i = 0; i < values.length; i++) {
+        if (values[i].deleted) {
+            list.innerHTML += `
+            <li class="line-through">
+                ${values[i]['name']}
+                <div class="flex">
+                <button id='btn-ok' onclick='removeItem("${values[i].name}")'>
+                <i class="fa-solid fa-xmark icon-size"></i>
             </button>
-       <!--input, botão-->
-        </div>
+                    <button id='btn-ok' onclick='riscarItem("${values[i]['name']}")'>
+                        <i class="fa-solid fa-arrow-rotate-left icon-size"></i>
+                    </button> 
+                </div>
+            </li>`
+        }   else {
+            list.innerHTML += `
+            <li>
+                ${values[i]['name']}
+                <div class="flex">
+                <button id='btn-ok' onclick='removeItem("${values[i].name}")'>
+    <i class="fa-solid fa-xmark icon-size"></i>
+</button>
+                <button id='btn-ok' onclick='riscarItem("${values[i]['name']}")'>
+                    <i class="fa fa-check icon-size"></i>
+                </button>
+                </div>
+            </li>`
+        }
+    }
+}
 
-        <div class="content--body">
-            <!--lista-->
-            <ol id="to-do-list">
 
-            </ol>
-        </div>
+function riscarItem(data) {
+    let values = JSON.parse(localStorage.getItem(localStorageKey) || "[]")
+    let index = values.findIndex(x => x.name == data)
 
-    </div>
-</div>
-</body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" integrity="sha512-fD9DI5bZwQxOi7MhYWnnNPlvXdp/2Pj3XSTRrFs5FQa4mizyGLnJcN6tuvUS6LbmgN1ut+XGSABKvjN0H6Aoow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="script.js"></script>
-</html>
+    values[index].deleted = !values[index].deleted
+    localStorage.setItem(localStorageKey, JSON.stringify(values))
+
+    showValues()
+}
+
+function removeItem(data) {
+    let values = JSON.parse(localStorage.getItem(localStorageKey) || "[]");
+    let index = values.findIndex(x => x.name == data);
+    values.splice(index, 1);
+    localStorage.setItem(localStorageKey, JSON.stringify(values));
+    showValues();
+}
+
+showValues()
+
